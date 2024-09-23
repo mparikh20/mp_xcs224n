@@ -23,6 +23,8 @@ def distinct_words(corpus):
     num_corpus_words = 0
 
     # ### START CODE HERE ###
+    corpus_words = sorted(list({token for document in corpus for token in document}))
+    num_corpus_words = len(corpus_words)
     # ### END CODE HERE ###
 
     return corpus_words, num_corpus_words
@@ -50,6 +52,33 @@ def compute_co_occurrence_matrix(corpus, window_size=4):
     word2Ind = {}
 
     # ### START CODE HERE ###
+    # initialize a matrix of size num_words
+    M = np.zeros((num_words,num_words))
+
+    # create a dictionary that takes the sorted words list and then assigns an index to each
+    # This dict will help in mapping the word pairs to add values in the M matrix
+    word2Ind = {word: n for n, word in enumerate(words)}
+
+    # corpus is a list of lists. Each list is a document.
+    # Each list has strings
+    for document in corpus:
+        # loop over each word that would be a center word
+        for center_i in range(len(document)):
+            # this will only select indices that span the window around the center word and within range
+            # context_m is the index of a word present around the center word in a window of size window_size
+            # get the center word and context word
+            center_word = document[center_i]
+
+            for context_m in filter(lambda x: 0 <= x < len(document) and x != center_i,
+                                    range(center_i-window_size,center_i+window_size+1)):
+
+                # get context word
+                context_word = document[context_m]
+
+                # access these words from the dictionary
+                # Allot the row index of M to be for center words and column index for the context word
+                if center_word in word2Ind and context_word in word2Ind:
+                    M[word2Ind[center_word],word2Ind[context_word]] += 1
     # ### END CODE HERE ###
 
     return M, word2Ind
@@ -72,6 +101,10 @@ def reduce_to_k_dim(M, k=2):
     print("Running Truncated SVD over %i words..." % (M.shape[0]))
 
     # ### START CODE HERE ###
+    svd = TruncatedSVD(n_components=k,n_iter=n_iter)
+
+    # Transform the matrix
+    M_reduced = svd.fit_transform(M)
     # ### END CODE HERE ###
 
     print("Done.")
