@@ -102,7 +102,6 @@ def naive_softmax_loss_and_gradient(center_word_vec,outside_word_idx,outside_vec
     # Only for the outside word of interest, subtract the center word vector
     grad_outside_vecs[outside_word_idx] = grad_outside_vecs[outside_word_idx] - center_word_vec
 
-    return loss, grad_center_vec, grad_outside_vecs
 
     ### END CODE HERE
 
