@@ -181,6 +181,34 @@ def skipgram(current_center_word, window_size, outside_words, word2ind, center_w
     grad_outside_vectors = np.zeros(outside_vectors.shape)
 
     ### START CODE HERE
+    # get the index mapping to the current center word
+    center_word_index = word2ind[current_center_word]
+
+    # get the center word vector using the index
+    # matrix will be nxd, each n is a word, each row is a word vector
+    # this will be a 1d array with d values, each a dimension
+    center_word_vec = center_word_vectors[center_word_index,:]
+
+    # Loop through each outside word
+    for outside_word in outside_words:
+
+        # get the index
+        outside_word_index = word2ind[outside_word]
+
+        # get loss and gradients in a function agnostic manner
+        # the negative sampling function already has a default of k set to 10, so no need to specify here
+        # all other arguments are same for the negative sampling and naive softmax function
+        loss_curr, grad_center_vec_curr, grad_outside_vecs_curr = word2vec_loss_and_gradient(center_word_vec=center_word_vec,
+                                                                              outside_word_idx=outside_word_index,
+                                                                              outside_vectors=outside_vectors,
+                                                                              dataset=dataset)
+        # Update the values
+        loss += loss_curr
+
+        # update the dJ/dvc only with respect to the current center word
+        grad_center_vecs[center_word_index] = grad_center_vecs[center_word_index] + grad_center_vec_curr
+
+        grad_outside_vectors = grad_outside_vectors + grad_outside_vecs_curr
     ### END CODE HERE
 
     return loss, grad_center_vecs, grad_outside_vectors
@@ -281,6 +309,12 @@ def sgd(f, x0, step, iterations, postprocessing=None, use_saved=False,PRINT_EVER
 
         loss = None
         ### START CODE HERE
+        # Each iteration needs to have the starting word vectors as an input
+        # Should get the loss and gradients
+        loss, grad = f(x)
+
+        # the parameters need to be updated
+        x = x - (step*grad)
         ### END CODE HERE
 
         x = postprocessing(x)
