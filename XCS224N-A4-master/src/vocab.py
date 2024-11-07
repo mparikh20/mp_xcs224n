@@ -224,7 +224,7 @@ def get_vocab_list(file_path, source, vocab_size):
     return sp_list 
 
 
-torch.serialization.add_safe_globals([VocabEntry, Vocab])
+# torch.serialization.add_safe_globals([VocabEntry, Vocab])
 
 if __name__ == '__main__':
     args = docopt(__doc__)
