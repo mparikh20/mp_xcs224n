@@ -274,7 +274,7 @@ class NMT(nn.Module):
         ### START CODE HERE (~9 Lines)
         enc_hiddens_proj = self.att_projection(enc_hiddens)
 
-        Y = self.model_embeddings.source(target_padded)
+        Y = self.model_embeddings.target(target_padded)
 
         for Y_t in torch.split(Y,split_size_or_sections=1,dim=0):
             Y_t_squeezed = torch.squeeze(Y_t,dim=0)
@@ -349,8 +349,11 @@ class NMT(nn.Module):
 
         # attention score e_t (b, src_len) = multiply dec_hidden (b,h) and enc_hiddens_proj (b,src_len,h)
         # bmm = bxnxm and bxmxp will give a bxnxp tensor
+        # bmm only works with 2 3d tensors, so unsqueeze to add an extra dimension to the dec_hidden
+        e_t_extradim = torch.bmm(enc_hiddens_proj,torch.unsqueeze(dec_hidden,dim=2))
 
-
+        # convert the result to reduce a dimension to go from (b,src_len,1) to (b,src_len)
+        e_t = torch.squeeze(e_t_extradim,dim=-1)
         ### END CODE HERE
 
         # Set e_t to -inf where enc_masks has 1
@@ -384,6 +387,25 @@ class NMT(nn.Module):
         ###     Tanh:
         ###         https://pytorch.org/docs/stable/generated/torch.tanh.html#torch-tanh
         ### START CODE HERE (~6 Lines)
+        alpha_t = nn.functional.softmax(e_t)
+
+        # alpha_t is (b, src_len) and enc_hiddens is (b, src_len, 2h)
+        # bmm = bxnxm and bxmxp will give a bxnxp tensor
+        # a_t needs to be (b,2h)
+        # bmm = bxnxm and bxmxp will give a bxnxp tensor
+
+        # a_t_extradim will be a (b,1,2h) shape
+        a_t_extradim = torch.bmm(torch.unsqueeze(alpha_t,dim=1), enc_hiddens)
+        a_t = torch.squeeze(a_t_extradim,dim=1)
+
+        # dec_hidden is shape (b,h) and a_t is shape (b,2h)
+        # U_t should be (b,h+2h)
+        U_t = torch.cat((a_t,dec_hidden),dim=1)
+
+        V_t = self.combined_output_projection(U_t)
+
+        O_t = self.dropout(torch.tanh(V_t))
+
         ### END CODE HERE
 
         combined_output = O_t
