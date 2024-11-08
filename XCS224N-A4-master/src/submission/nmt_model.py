@@ -341,6 +341,16 @@ class NMT(nn.Module):
         ###         https://pytorch.org/docs/stable/generated/torch.squeeze.html#torch-squeeze
 
         ### START CODE HERE (~3 Lines)
+        dec_state = self.decoder(Ybar_t,dec_state)
+
+        # hidden state (b,h)
+        dec_hidden = dec_state[0]
+        dec_cell = dec_state[1]
+
+        # attention score e_t (b, src_len) = multiply dec_hidden (b,h) and enc_hiddens_proj (b,src_len,h)
+        # bmm = bxnxm and bxmxp will give a bxnxp tensor
+
+
         ### END CODE HERE
 
         # Set e_t to -inf where enc_masks has 1
