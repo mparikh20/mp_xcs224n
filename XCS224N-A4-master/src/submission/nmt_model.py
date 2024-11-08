@@ -66,6 +66,28 @@ class NMT(nn.Module):
         ###     Dropout Layer:
         ###         https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html#torch.nn.Dropout
         ### START CODE HERE (~8 Lines)
+        self.encoder = nn.LSTM(input_size=embed_size,
+                                     hidden_size=hidden_size,
+                                     bidirectional=True)
+        self.decoder = nn.LSTMCell(input_size=embed_size+hidden_size,
+                                         hidden_size=hidden_size)
+        self.h_projection = nn.Linear(in_features=hidden_size+hidden_size,
+                                            out_features=hidden_size,
+                                            bias=False)
+        self.c_projection = nn.Linear(in_features=hidden_size+hidden_size,
+                                            out_features=hidden_size,
+                                            bias=False)
+        self.att_projection = nn.Linear(in_features=hidden_size*2,
+                                              out_features=hidden_size,
+                                              bias=False)
+        self.combined_output_projection = nn.Linear(in_features=3*hidden_size,
+                                                          out_features=hidden_size,
+                                                          bias=False)
+        self.target_vocab_projection = nn.Linear(in_features=hidden_size,
+                                                 out_features=len(vocab.tgt),
+                                                 bias=False)
+        self.dropout = nn.Dropout(p=dropout_rate)
+
         ### END CODE HERE
 
 
@@ -154,6 +176,34 @@ class NMT(nn.Module):
         ###     Tensor Permute:
         ###         https://pytorch.org/docs/stable/generated/torch.permute.html#torch.permute
         ### START CODE HERE (~ 8 Lines)
+        # get embeddings for source sentences, X shape = (src_len,b,e)
+        X = self.model_embeddings.source(source_padded)
+
+        # pack the padded sequences, telling the model what tokens to ignore
+        X_packed = nn.utils.rnn.pack_padded_sequence(input=X,
+                                                     lengths=source_lengths,
+                                                     batch_first=False,
+                                                     enforce_sorted=True)
+
+        # pass the packed input through the encoder LSTM
+        # enc_hiddens = (src_len,b,2h)
+        # last_hidden and last_cell will be (2,b,h)
+        enc_hiddens_unpermuted, (last_hidden,last_cell) = self.encoder(X_packed)
+
+        # the encoder hidden states output needs to be padded back before passing forward
+        enc_hiddens_padded, enc_hiddens_lengths = nn.utils.rnn.pad_packed_sequence(enc_hiddens_unpermuted, batch_first=False)
+
+        # permute the encoder hidden states tensor to a shape (b,src_len,2h)
+        # permute takes in the new rearranged dimensions
+        enc_hiddens = enc_hiddens_padded.permute(1,0,2)
+
+        # concatenate the forward and backward h states to get tensor (b,2*h)
+        init_decoder_hidden = self.h_projection(torch.cat((last_hidden[0],last_hidden[1]),dim=1))
+
+        # same process for the cell state
+        init_decoder_cell = self.c_projection(torch.cat((last_cell[0],last_cell[1]),dim=1))
+
+        dec_init_state = (init_decoder_hidden,init_decoder_cell)
         ### END CODE HERE
 
         return enc_hiddens, dec_init_state
