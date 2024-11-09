@@ -400,8 +400,8 @@ class NMT(nn.Module):
 
         # dec_hidden is shape (b,h) and a_t is shape (b,2h)
         # U_t should be (b,h+2h)
-        U_t = torch.cat((a_t,dec_hidden),dim=1)
-
+        # U_t = torch.cat((a_t,dec_hidden),dim=1)
+        U_t = torch.cat((dec_hidden,a_t),dim=1)
         V_t = self.combined_output_projection(U_t)
 
         O_t = self.dropout(torch.tanh(V_t))
