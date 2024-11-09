@@ -259,7 +259,8 @@ def train(args: Dict):
                         print('load previously best model and decay learning rate to %f' % lr, file=sys.stderr)
 
                         # load model
-                        params = torch.load(model_save_path, map_location=lambda storage, loc: storage, weights_only=True)
+                        # params = torch.load(model_save_path, map_location=lambda storage, loc: storage, weights_only=True)
+                        params = torch.load(model_save_path, map_location=lambda storage, loc: storage)
                         model.load_state_dict(params['state_dict'])
                         model = model.to(device)
 
