@@ -1,0 +1,12 @@
+#Cheat sheet for copying files between local comp and VM
+
+## Taken from the Azure guide
+### if this is the ssh link:
+ssh -p 54003 scpdxcs@ml-lab-XXXXXXXXXXXXX.southcentralus.cloudapp.azure.com
+
+
+### copy files to the VM from local computer
+scp -r -P 54003 path/to/local/file scpdxcs@ml-lab-XXXXXXXXXXXXX.southcentralus.cloudapp.azure.com:path/to/remote/destination
+
+To transfer files from the VM to your local machine, use the following command:
+scp -r -P 5050 scpdxcs@lab-c8b64a18-d5cd-4619-bf5f-529aa4bb00ce.westeurope.cloudapp.azure.com:/home/scpdxcs/XCS224N-A4-master /Users/mukti/Documents
