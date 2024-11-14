@@ -176,9 +176,56 @@ class CharCorruptionDataset(Dataset):
         ### [part e]: see spec above
 
         ### START CODE HERE
+        '''
+        0. Use the idx argument of __getitem__ to retrieve the element of self.data at the given index. We'll call the resulting data entry a document.
+        '''
+        document = self.data[idx]
+
+        # 1. Randomly truncate the document to a length no less than 4 characters, and no more than int(self.block_size*3/4) characters.
+        if len(document) < self.max_context_size:
+            max_length = len(document)
+        else:
+            max_length = self.max_context_size
+
+        # select a length at random
+        length = random.randint(4,max_length)
+        truncated_document = document[0:length]
+
+        average_masked_length = int(self.masking_percent*len(truncated_document))
+
+        # specifying the mean to be 1/4th of the length and std dev to be 3
+        mask_length = int(random.gauss(average_masked_length,3))
+
+        # randomly select prefix length
+        max_prefix_length = len(truncated_document) - mask_length - 1
+
+        prefix_length = random.randint(1,max_prefix_length)
+
+        prefix = truncated_document[0:prefix_length]
+        masked_content = truncated_document[prefix_length:prefix_length+mask_length]
+        suffix = truncated_document[prefix_length+mask_length:]
+
+        # task 3 - rearrange the substrings
+        stitched_string = prefix + self.MASK_CHAR + suffix + self.MASK_CHAR + masked_content + self.MASK_CHAR
+
+        masked_string = stitched_string + self.PAD_CHAR*(self.block_size - len(stitched_string))
+
+        # get x and y
+        x = masked_string[:-1]
+        y = masked_string[1:]
+
+        # encode them by converting str to int
+        x_encoding = [self.stoi[char] for char in x]
+        y_encoding = [self.stoi[char] for char in y]
+
+        # convert to long tensors
+        x = torch.tensor(x_encoding,dtype=torch.long)
+        y = torch.tensor(y_encoding,dtype=torch.long)
+
+        return x,y
         ### END CODE HERE
 
-        raise NotImplementedError
+        # raise NotImplementedError
 
 """
 Code under here is strictly for your debugging purposes; feel free to modify
