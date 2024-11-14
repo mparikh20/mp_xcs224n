@@ -194,11 +194,11 @@ class CharCorruptionDataset(Dataset):
         average_masked_length = int(self.masking_percent*len(truncated_document))
 
         # specifying the mean to be 1/4th of the length and std dev to be 3
-        mask_length = int(random.gauss(average_masked_length,3))
+        mask_length = min(len(truncated_document)-2,max(1,int(random.gauss(average_masked_length,3))))
 
         # randomly select prefix length
         max_prefix_length = len(truncated_document) - mask_length - 1
-
+        print(f'>>>{max_prefix_length}')
         prefix_length = random.randint(1,max_prefix_length)
 
         prefix = truncated_document[0:prefix_length]
