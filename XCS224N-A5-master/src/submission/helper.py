@@ -116,7 +116,7 @@ def train(model, writing_params_path, trainer_obj):
 
     ### START CODE HERE
     trainer_obj.train()
-    torch.save(trainer_obj.model.state_dict(),writing_params_path)
+    # torch.save(trainer_obj.model.state_dict(),writing_params_path)
 
     ckpt_model = model.module if hasattr(model, "module") else model
     torch.save(ckpt_model.state_dict(), writing_params_path)
