@@ -12,6 +12,7 @@ def initialize_vanilla_model(mconf):
     ### [part c]: Make some model here
 
     ### START CODE HERE
+    attention_model = GPT(mconf)
     ### END CODE HERE
     return attention_model
 
@@ -60,6 +61,24 @@ def finetune(reading_params_path, finetune_corpus_path, pretrain_dataset, block_
     trainer_obj = None #Trainer object (see trainer.py for more details)
     tconf = None #TrainerConfig object (see trainer.py for more details)
     ### START CODE HERE
+    # load the finetuning corpus
+    with open(finetune_corpus_path,'r') as file:
+        data = file.read()
+
+    train_dataset = NameDataset(data,pretrain_dataset)
+
+    # set training configuration for training without pretrained model [part c]
+
+    if reading_params_path is None:
+        tconf = TrainerConfig(max_epochs = 75,
+                              batch_size=256,
+                              learning_rate=6e-4,
+                              lr_decay=True,
+                              warmup_tokens=512*20,
+                              final_tokens=200*len(pretrain_dataset)*block_size,
+                              num_workers=0)
+
+    trainer_obj = Trainer(model,train_dataset,None,tconf)
     ### END CODE HERE
     return tconf, trainer_obj
 
@@ -96,5 +115,10 @@ def train(model, writing_params_path, trainer_obj):
     ### Note: trainer_obj is of type Trainer (see trainer.py for more details)
 
     ### START CODE HERE
+    trainer_obj.train()
+    torch.save(trainer_obj.model.state_dict(),writing_params_path)
+
+    ckpt_model = model.module if hasattr(model, "module") else model
+    torch.save(ckpt_model.state_dict(), writing_params_path)
     ### END CODE HERE
     return
