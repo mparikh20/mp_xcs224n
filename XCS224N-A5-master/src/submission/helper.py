@@ -85,8 +85,8 @@ def finetune(reading_params_path, finetune_corpus_path, pretrain_dataset, block_
                               warmup_tokens=512*20,
                               final_tokens=200*len(pretrain_dataset)*block_size,
                               num_workers=0)
-        model = torch.load(reading_params_path, map_location=torch.device('cpu'), weights_only=True)
-
+        state_dict = torch.load(reading_params_path, map_location=torch.device('cpu'), weights_only=True)
+        model.load_state_dict(state_dict)
     trainer_obj = Trainer(model,train_dataset,None,tconf)
     ### END CODE HERE
     return tconf, trainer_obj
