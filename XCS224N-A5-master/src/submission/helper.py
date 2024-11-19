@@ -77,6 +77,15 @@ def finetune(reading_params_path, finetune_corpus_path, pretrain_dataset, block_
                               warmup_tokens=512*20,
                               final_tokens=200*len(pretrain_dataset)*block_size,
                               num_workers=0)
+    else:
+        tconf = TrainerConfig(max_epochs=10,
+                              batch_size=256,
+                              learning_rate=6e-4,
+                              lr_decay=True,
+                              warmup_tokens=512*20,
+                              final_tokens=200*len(pretrain_dataset)*block_size,
+                              num_workers=0)
+        model = torch.load(reading_params_path, map_location=torch.device('cpu'), weights_only=True)
 
     trainer_obj = Trainer(model,train_dataset,None,tconf)
     ### END CODE HERE
@@ -103,6 +112,15 @@ def pretrain(pretrain_dataset, block_size, model, pretrain_lr=6e-3, writer=None)
     tconf = None #TrainerConfig object (see trainer.py for more details)
 
     ### START CODE HERE
+    tconf = TrainerConfig(max_epochs=650,
+                          batch_size=128,
+                          learning_rate=pretrain_lr,
+                          lr_decay=True,
+                          warmup_tokens=512*20,
+                          final_tokens=200*len(pretrain_dataset)*block_size,
+                          num_workers=0)
+
+    trainer_obj = Trainer(model,pretrain_dataset,None,tconf)
     ### END CODE HERE
     return tconf, trainer_obj
 
